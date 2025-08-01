@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro Técnico</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+
+    .login,
+    .formulario {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #formulario {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login" id="login">
+    <h2>Iniciar sesión</h2>
+    <input type="text" id="usuario" placeholder="Usuario" />
+    <input type="password" id="clave" placeholder="Contraseña" />
+    <button onclick="iniciarSesion()">Ingresar</button>
+  </div>
+
+  <div class="formulario" id="formulario">
+    <h2>Registro Técnico</h2>
+    <input type="text" id="dtap" placeholder="DTAP" />
+    <input type="date" id="fecha" />
+    <input type="text" id="ubicacion" placeholder="Ubicación" />
+    <input type="text" id="proyecto" placeholder="Proyecto" />
+    <input type="text" id="terminal" placeholder="Terminal (TML)" />
+    <textarea id="comentario" placeholder="Comentario"></textarea>
+    <input type="file" id="foto" />
+    <button onclick="enviarRegistro()">Guardar</button>
+  </div>
+
+  <script>
+    const usuarios = {
+      tecnico1: "1234",
+      tecnico2: "abcd",
+    };
+
+    let tecnicoActivo = "";
+
+    function iniciarSesion() {
+      const usuario = document.getElementById("usuario").value;
+      const clave = document.getElementById("clave").value;
+
+      if (usuarios[usuario] === clave) {
+        tecnicoActivo = usuario;
+        document.getElementById("login").style.display = "none";
+        document.getElementById("formulario").style.display = "block";
+        document.getElementById("fecha").valueAsDate = new Date();
+      } else {
+        alert("Credenciales incorrectas");
+      }
+    }
+
+    async function enviarRegistro() {
+      const dtap = document.getElementById("dtap").value;
+      const fecha = document.getElementById("fecha").value;
+      const ubicacion = document.getElementById("ubicacion").value;
+      const proyecto = document.getElementById("proyecto").value;
+      const terminal = document.getElementById("terminal").value;
+      const comentario = document.getElementById("comentario").value;
+      const foto = document.getElementById("foto").files[0];
+
+      let fotoBase64 = "";
+      if (foto) {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          fotoBase64 = reader.result;
+          await enviarDatos(
+            dtap,
+            fecha,
+            tecnicoActivo,
+            ubicacion,
+            proyecto,
+            terminal,
+            comentario,
+            fotoBase64
+          );
+        };
+        reader.readAsDataURL(foto);
+      } else {
+        await enviarDatos(
+          dtap,
+          fecha,
+          tecnicoActivo,
+          ubicacion,
+          proyecto,
+          terminal,
+          comentario,
+          ""
+        );
+      }
+    }
+
+    async function enviarDatos(
+      dtap,
+      fecha,
+      tecnico,
+      ubicacion,
+      proyecto,
+      terminal,
+      comentario,
+      fotoBase64
+    ) {
+      const data = {
+        dtap,
+        fecha,
+        tecnico,
+        ubicacion,
+        proyecto,
+        terminal,
+        comentario,
+        foto: fotoBase64,
+      };
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbzJKApCSM5SYsmOlGYPqf-tigjxU56ENFoOp_HaylQvBxvPaABy7qYJYkudd8cpR-v3/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+
+      if (response.ok) {
+        alert("Registro enviado correctamente");
+        limpiarFormulario();
+      } else {
+        alert("Error al enviar el registro");
+      }
+    }
+
+    function limpiarFormulario() {
+      document.getElementById("dtap").value = "";
+      document.getElementById("fecha").valueAsDate = new Date();
+      document.getElementById("ubicacion").value = "";
+      document.getElementById("proyecto").value = "";
+      document.getElementById("terminal").value = "";
+      document.getElementById("comentario").value = "";
+      document.getElementById("foto").value = "";
+    }
+  </script>
+</body>
+
+</html>
